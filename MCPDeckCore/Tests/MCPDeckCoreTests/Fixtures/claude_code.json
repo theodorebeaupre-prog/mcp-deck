@@ -1,0 +1,48 @@
+{
+  "numStartups": 236,
+  "installMethod": "brew",
+  "autoUpdates": true,
+  "tipsHistory": {
+    "new-user-warmup": 1,
+    "shift-enter": 116
+  },
+  "firstStartTime": "2025-11-02T18:23:09.164Z",
+  "userID": "f3a1c9e2b8d74a5f",
+  "mcpServers": {
+    "remote-http": {
+      "type": "http",
+      "url": "https://mcp.example.com/api/mcp/sse/a1b2c3"
+    },
+    "legacy-sse": {
+      "type": "sse",
+      "url": "https://sse.example.com/stream"
+    },
+    "research-agent": {
+      "type": "stdio",
+      "command": "/Users/example/.local/bin/research-mcp",
+      "args": ["--serve"],
+      "env": {}
+    }
+  },
+  "projects": {
+    "__PROJECT_PATH__": {
+      "allowedTools": [],
+      "mcpServers": {
+        "project-linter": {
+          "command": "npx",
+          "args": ["-y", "lint-mcp"],
+          "env": {
+            "STRICT": "true"
+          }
+        }
+      },
+      "hasTrustDialogAccepted": true
+    },
+    "/Users/example/other-project": {
+      "allowedTools": ["Bash"],
+      "hasTrustDialogAccepted": false
+    }
+  },
+  "cachedChangelog": "## 3.0.0\n- Big release\n",
+  "fallbackAvailableWarningThreshold": 0.5
+}

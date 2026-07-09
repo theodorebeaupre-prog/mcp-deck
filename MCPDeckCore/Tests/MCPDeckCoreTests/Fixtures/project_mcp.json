@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "team-database": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "db-mcp:latest"],
+      "env": {
+        "DB_DSN": "postgres://localhost/dev"
+      }
+    }
+  }
+}

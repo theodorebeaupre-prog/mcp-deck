@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "automation-tool": {
+      "command": "npx",
+      "args": ["-y", "@example/automation-mcp"],
+      "env": {
+        "API_URL": "https://automation.example.com",
+        "API_KEY": "sk-test-1234"
+      }
+    },
+    "local-files": {
+      "command": "/usr/local/bin/files-mcp",
+      "args": []
+    }
+  },
+  "userFilesPath": "/Users/example/Documents",
+  "preferences": {
+    "theme": "dark",
+    "fontScale": 1.50
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "docs-search": {
+      "url": "https://mcp.docs.example.com/mcp"
+    },
+    "shell": {
+      "command": "uvx",
+      "args": ["shell-mcp@latest"],
+      "env": {
+        "SHELL_TIMEOUT": "30"
+      }
+    }
+  }
+}
