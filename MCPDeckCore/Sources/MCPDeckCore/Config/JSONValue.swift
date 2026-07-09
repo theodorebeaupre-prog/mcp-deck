@@ -341,6 +341,42 @@ extension JSONValue {
         return output
     }
 
+    /// Single-line form, used for JSON-RPC messages over stdio (one message per line).
+    public func serializedCompact() -> String {
+        var output = ""
+        writeCompact(to: &output)
+        return output
+    }
+
+    private func writeCompact(to output: inout String) {
+        switch self {
+        case .object(let object):
+            output.append("{")
+            for (index, member) in object.members.enumerated() {
+                if index > 0 { output.append(",") }
+                JSONValue.writeEscapedString(member.key, to: &output)
+                output.append(":")
+                member.value.writeCompact(to: &output)
+            }
+            output.append("}")
+        case .array(let items):
+            output.append("[")
+            for (index, item) in items.enumerated() {
+                if index > 0 { output.append(",") }
+                item.writeCompact(to: &output)
+            }
+            output.append("]")
+        case .string(let string):
+            JSONValue.writeEscapedString(string, to: &output)
+        case .number(let raw):
+            output.append(raw)
+        case .bool(let bool):
+            output.append(bool ? "true" : "false")
+        case .null:
+            output.append("null")
+        }
+    }
+
     private func write(to output: inout String, indent: Int) {
         let pad = String(repeating: "  ", count: indent)
         let childPad = String(repeating: "  ", count: indent + 1)
