@@ -82,7 +82,8 @@ struct ServerListView: View {
                     Label("Check All", systemImage: "arrow.clockwise")
                 }
                 .disabled(isRefreshing)
-                .help("Rescan configs and health-check every server")
+                .keyboardShortcut("r", modifiers: .command)
+                .help("Rescan configs and health-check every server (⌘R)")
             }
         }
     }
