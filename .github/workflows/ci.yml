@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: Build & test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Run MCPDeckCore tests
+        run: swift test --package-path MCPDeckCore
+
+      - name: Build app (warnings are errors)
+        run: |
+          xcodebuild -project MCPDeck.xcodeproj \
+            -scheme MCPDeck \
+            -configuration Release \
+            CODE_SIGN_IDENTITY=- \
+            build

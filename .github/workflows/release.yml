@@ -1,0 +1,100 @@
+name: Release
+
+# Builds, signs (Developer ID), notarizes, staples, and publishes MCP Deck
+# when a version tag is pushed.
+#
+# Required repository secrets:
+#   BUILD_CERTIFICATE_BASE64   Developer ID Application certificate (.p12, base64)
+#   P12_PASSWORD               password of that .p12
+#   KEYCHAIN_PASSWORD          any random string (protects the temp CI keychain)
+#   APPLE_ID                   Apple ID used for notarization
+#   APPLE_TEAM_ID              10-character team identifier
+#   APP_SPECIFIC_PASSWORD      app-specific password for notarytool
+#   CODE_SIGN_IDENTITY_NAME    e.g. "Developer ID Application: Jane Doe (TEAMID1234)"
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Sign, notarize & publish
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Run tests
+        run: swift test --package-path MCPDeckCore
+
+      - name: Import signing certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERT_PATH="$RUNNER_TEMP/certificate.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$P12_PASSWORD" -A \
+            -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: \
+            -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH" login.keychain
+
+      - name: Build signed Release
+        env:
+          CODE_SIGN_IDENTITY_NAME: ${{ secrets.CODE_SIGN_IDENTITY_NAME }}
+        run: |
+          xcodebuild -project MCPDeck.xcodeproj \
+            -scheme MCPDeck \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY_NAME" \
+            OTHER_CODE_SIGN_FLAGS="--timestamp --options=runtime" \
+            build
+
+      - name: Zip app
+        run: |
+          APP="build/Build/Products/Release/MCPDeck.app"
+          ditto -c -k --keepParent "$APP" "MCP-Deck-${GITHUB_REF_NAME}.zip"
+
+      - name: Notarize
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+        run: |
+          xcrun notarytool submit "MCP-Deck-${GITHUB_REF_NAME}.zip" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APP_SPECIFIC_PASSWORD" \
+            --wait
+
+      - name: Staple and re-zip
+        run: |
+          APP="build/Build/Products/Release/MCPDeck.app"
+          xcrun stapler staple "$APP"
+          rm "MCP-Deck-${GITHUB_REF_NAME}.zip"
+          ditto -c -k --keepParent "$APP" "MCP-Deck-${GITHUB_REF_NAME}.zip"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "MCP-Deck-${GITHUB_REF_NAME}.zip" \
+            --title "MCP Deck $GITHUB_REF_NAME" \
+            --generate-notes
