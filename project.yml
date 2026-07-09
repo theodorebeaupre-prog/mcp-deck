@@ -1,0 +1,59 @@
+name: MCPDeck
+options:
+  bundleIdPrefix: com.theodorebeaupre
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  xcodeVersion: "15.3"
+
+packages:
+  MCPDeckCore:
+    path: MCPDeckCore
+
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    ENABLE_HARDENED_RUNTIME: YES
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+    DEAD_CODE_STRIPPING: YES
+    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.1.0"
+
+targets:
+  MCPDeck:
+    type: application
+    platform: macOS
+    sources:
+      - path: MCPDeck
+    dependencies:
+      - package: MCPDeckCore
+    info:
+      path: MCPDeck/Resources/Info.plist
+      properties:
+        CFBundleName: MCP Deck
+        CFBundleDisplayName: MCP Deck
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.developer-tools
+        NSHumanReadableCopyright: "MIT License — Théodore Beaupré"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.theodorebeaupre.MCPDeck
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_USER_SCRIPT_SANDBOXING: YES
+        COMBINE_HIDPI_IMAGES: YES
+
+schemes:
+  MCPDeck:
+    build:
+      targets:
+        MCPDeck: all
+    run:
+      config: Debug
+    archive:
+      config: Release
