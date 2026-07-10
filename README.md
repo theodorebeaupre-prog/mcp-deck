@@ -51,7 +51,7 @@ brew install --cask theodorebeaupre-prog/tap/mcp-deck
 
 ### Direct download
 
-Grab the latest notarized build from [Releases](../../releases), unzip, and drag **MCP Deck.app** to `/Applications`.
+Grab the latest build from [Releases](../../releases), unzip, and drag **MCPDeck.app** to `/Applications`. Check the release notes for its signing status — unsigned builds need a right-click → Open on first launch.
 
 ### Build from source
 
