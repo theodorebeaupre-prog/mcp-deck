@@ -38,7 +38,7 @@ targets:
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         LSUIElement: true
         LSApplicationCategoryType: public.app-category.developer-tools
-        NSHumanReadableCopyright: "MIT License — Théodore Beaupré"
+        NSHumanReadableCopyright: "MIT License — ISO NORD CA"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.theodorebeaupre.MCPDeck
