@@ -46,7 +46,7 @@ Both transports are supported: `stdio` (command + args + env) and `http`/`sse` (
 ### Homebrew
 
 ```sh
-brew install --cask theodorebeaupre/tap/mcp-deck
+brew install --cask theodorebeaupre-prog/tap/mcp-deck
 ```
 
 ### Direct download
@@ -57,7 +57,7 @@ Grab the latest notarized build from [Releases](../../releases), unzip, and drag
 
 ```sh
 brew install xcodegen
-git clone https://github.com/theodorebeaupre/mcp-deck.git && cd mcp-deck
+git clone https://github.com/theodorebeaupre-prog/mcp-deck.git && cd mcp-deck
 xcodegen generate
 xcodebuild -project MCPDeck.xcodeproj -scheme MCPDeck -configuration Release build
 ```
