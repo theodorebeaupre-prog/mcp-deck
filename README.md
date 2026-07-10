@@ -91,4 +91,4 @@ Contributions are welcome — especially new client providers (Windsurf, Zed, VS
 
 ## License
 
-[MIT](LICENSE) — © 2026 Théodore Beaupré
+[MIT](LICENSE) — © 2026 ISO NORD CA
