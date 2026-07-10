@@ -11,6 +11,7 @@ public final class LogTailer: @unchecked Sendable {
     private let queue = DispatchQueue(label: "com.theodorebeaupre.MCPDeck.LogTailer")
     private var handle: FileHandle?
     private var offset: UInt64 = 0
+    private var fileID: UInt64 = 0
     private var source: DispatchSourceFileSystemObject?
     private var pollTimer: DispatchSourceTimer?
     private var partialLine = Data()
@@ -50,6 +51,7 @@ public final class LogTailer: @unchecked Sendable {
     private func openAndBackfill() {
         guard let newHandle = try? FileHandle(forReadingFrom: url) else { return }
         handle = newHandle
+        fileID = LogTailer.stat(url)?.fileID ?? 0
         let size = (try? newHandle.seekToEnd()) ?? 0
         offset = size > backfillBytes ? size - backfillBytes : 0
         try? newHandle.seek(toOffset: offset)
@@ -81,10 +83,12 @@ public final class LogTailer: @unchecked Sendable {
     }
 
     private func drain() {
-        let fileSize = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? UInt64) ?? nil
+        let current = LogTailer.stat(url)
 
-        // Rotated or truncated: reopen from the beginning of the new file.
-        if handle == nil || (fileSize ?? 0) < offset {
+        // Rotated (replaced file = new inode, regardless of the new size),
+        // truncated, or never opened: reopen from the start of the new file.
+        let rotated = current.map { $0.fileID != fileID || $0.size < offset } ?? false
+        if handle == nil || rotated {
             source?.cancel()
             source = nil
             try? handle?.close()
@@ -93,6 +97,7 @@ public final class LogTailer: @unchecked Sendable {
             partialLine.removeAll()
             guard let reopened = try? FileHandle(forReadingFrom: url) else { return }
             handle = reopened
+            fileID = current?.fileID ?? 0
             let vnodeSource = DispatchSource.makeFileSystemObjectSource(
                 fileDescriptor: reopened.fileDescriptor,
                 eventMask: [.write, .extend, .delete, .rename],
@@ -104,6 +109,15 @@ public final class LogTailer: @unchecked Sendable {
         }
 
         readAvailableLines().forEach { emit?($0) }
+    }
+
+    private static func stat(_ url: URL) -> (size: UInt64, fileID: UInt64)? {
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) else {
+            return nil
+        }
+        let size = (attributes[.size] as? NSNumber)?.uint64Value ?? 0
+        let fileID = (attributes[.systemFileNumber] as? NSNumber)?.uint64Value ?? 0
+        return (size, fileID)
     }
 
     private func readAvailableLines() -> [String] {
